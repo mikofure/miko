@@ -1,0 +1,10 @@
+# Build options
+option(MIKO_BUILD_EXAMPLES "Build Miko examples" ON)
+option(MIKO_BUILD_TESTS "Build Miko tests" ON)
+option(MIKO_ENABLE_SCREEN_CAPTURE "Enable screen capture functionality" OFF)
+option(MIKO_ENABLE_INSPECTOR "Enable UI inspector" OFF)
+option(MIKO_ENABLE_LEAK_DETECTION "Enable memory leak detection" OFF)
+option(MIKO_RUNTIME_SHADERS "Load shaders at runtime" OFF)
+option(MIKO_USE_VULKAN "Use Vulkan renderer (otherwise OpenGL)" ON)
+option(MIKO_ENABLE_HTTP_CLIENT "Enable HTTP client functionality" ON)
+option(MIKO_AUTO_BUILD_DEPS "Automatically build missing dependencies from GitHub" ON)
