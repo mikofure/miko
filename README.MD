@@ -39,7 +39,7 @@ Miko Framework is a modern, GPU-accelerated C++ UI framework designed for high-p
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/miko.git
+git clone https://github.com/mikofure/miko.git
 cd miko
 
 # Create build directory
@@ -350,9 +350,9 @@ SOFTWARE.
 
 ## 📞 Support
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/your-username/miko/issues)
-- 📖 **Documentation**: [Wiki](https://github.com/your-username/miko/wiki)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-username/miko/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/mikofure/miko/issues)
+- 📖 **Documentation**: [Wiki](https://github.com/mikofure/miko/wiki)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/mikofure/miko/discussions)
 
 ---
 
