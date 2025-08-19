@@ -100,12 +100,12 @@ private:
         mainContent = std::make_shared<Panel>();
         mainContent->SetHorizontalAlignment(HorizontalAlignment::Stretch);
         mainContent->SetVerticalAlignment(VerticalAlignment::Stretch);
-        mainContent->SetBackgroundColor(Color::White);
+        mainContent->SetBackgroundColor(Color(0.98f, 0.98f, 0.98f, 1.0f)); // Light gray background like redesign
         mainContent->SetMargin(Margin(10.0f, 0, 0, 0));
         
         auto contentLayout = std::make_shared<StackLayout>(Orientation::Vertical);
-        contentLayout->SetSpacing(20.0f);
-        contentLayout->SetMargin(Margin(20.0f));
+        contentLayout->SetSpacing(0.0f); // Remove spacing since sections have their own margins
+        contentLayout->SetMargin(Margin(24.0f)); // Increased padding for better spacing
         mainContent->SetLayout(contentLayout);
         
         // Show basic widgets by default
@@ -140,19 +140,22 @@ private:
         auto labelSection = CreateSection("Labels");
         
         auto simpleLabel = std::make_shared<Label>("Simple Label");
+        simpleLabel->SetPadding(Padding(8.0f, 4.0f));
         labelSection->AddChild(simpleLabel);
-        
+
         auto styledLabel = std::make_shared<Label>("Styled Label with Bold Font");
         styledLabel->SetFont(Font("Segoe UI", 14.0f, FontWeight::Bold));
         styledLabel->SetTextColor(Color::Blue);
+        styledLabel->SetPadding(Padding(8.0f, 4.0f));
         labelSection->AddChild(styledLabel);
-        
+
         auto wrappedLabel = std::make_shared<Label>(
             "This is a long label that demonstrates text wrapping functionality. "
             "The text will wrap to multiple lines when it exceeds the available width."
         );
         wrappedLabel->SetWordWrap(true);
         wrappedLabel->SetHorizontalAlignment(HorizontalAlignment::Stretch);
+        wrappedLabel->SetPadding(Padding(8.0f, 4.0f));
         labelSection->AddChild(wrappedLabel);
         
         mainContent->AddChild(labelSection);
@@ -161,21 +164,31 @@ private:
         auto buttonSection = CreateSection("Buttons");
         
         auto buttonPanel = std::make_shared<Panel>();
-        buttonPanel->SetHorizontalAlignment(HorizontalAlignment::Stretch);
+        buttonPanel->SetHorizontalAlignment(HorizontalAlignment::Left);
+        
         auto buttonLayout = std::make_shared<StackLayout>(Orientation::Horizontal);
-        buttonLayout->SetSpacing(10.0f);
+        buttonLayout->SetSpacing(12.0f); // Increased spacing between buttons
         buttonPanel->SetLayout(buttonLayout);
         
+        // Create buttons with modern styling matching redesign
         auto normalButton = std::make_shared<Button>("Normal Button");
+        normalButton->SetSize(Size(140.0f, 36.0f)); // Slightly larger
+    normalButton->SetPadding(Padding(12.0f, 8.0f)); // More padding
+        normalButton->SetCornerRadius(8.0f); // Rounded corners
         buttonPanel->AddChild(normalButton);
         
         auto styledButton = std::make_shared<Button>("Styled Button");
-        styledButton->SetNormalColor(Color::Blue);
-        styledButton->SetHoverColor(Color::Blue.Lighten(0.2f));
+        styledButton->SetSize(Size(140.0f, 36.0f));
+    styledButton->SetPadding(Padding(12.0f, 8.0f));
+        styledButton->SetBackgroundColor(Color(0.2f, 0.4f, 1.0f, 1.0f)); // Modern blue
         styledButton->SetTextColor(Color::White);
+        styledButton->SetCornerRadius(8.0f);
         buttonPanel->AddChild(styledButton);
         
         auto disabledButton = std::make_shared<Button>("Disabled Button");
+        disabledButton->SetSize(Size(140.0f, 36.0f));
+    disabledButton->SetPadding(Padding(12.0f, 8.0f));
+        disabledButton->SetCornerRadius(8.0f);
         disabledButton->SetEnabled(false);
         buttonPanel->AddChild(disabledButton);
         
@@ -282,19 +295,20 @@ private:
     std::shared_ptr<Panel> CreateSection(const std::string& title) {
         auto section = std::make_shared<Panel>();
         section->SetHorizontalAlignment(HorizontalAlignment::Stretch);
-        section->SetBackgroundColor(Color::ControlBackground);
-        section->SetBorderColor(Color::BorderColor);
+        section->SetBackgroundColor(Color::White);
+        section->SetBorderColor(Color(0.9f, 0.9f, 0.9f, 1.0f)); // Light gray border
         section->SetBorderWidth(1.0f);
-        section->SetCornerRadius(5.0f);
+        section->SetCornerRadius(12.0f); // More rounded corners like redesign
+    section->SetPadding(Padding(20.0f)); // Increased padding for better spacing
+        section->SetMargin(Margin(0, 0, 16.0f, 0)); // Bottom margin between sections
         
         auto layout = std::make_shared<StackLayout>(Orientation::Vertical);
-        layout->SetSpacing(10.0f);
-        layout->SetMargin(Margin(15.0f));
+        layout->SetSpacing(16.0f); // Increased spacing
         section->SetLayout(layout);
         
         auto sectionTitle = std::make_shared<Label>(title);
-        sectionTitle->SetFont(Font("Segoe UI", 16.0f, FontWeight::Bold));
-        sectionTitle->SetTextColor(Color::TextColor);
+        sectionTitle->SetFont(Font("Segoe UI", 18.0f, FontWeight::Bold)); // Larger title
+        sectionTitle->SetTextColor(Color::Black);
         section->AddChild(sectionTitle);
         
         return section;

@@ -93,16 +93,14 @@ void Label::OnRender(std::shared_ptr<Renderer> renderer) {
     // Draw text
     if (!text.empty()) {
         Brush textBrush(textColor);
-        
         // Calculate text area (excluding padding)
-        Margin padding = this->GetPadding();
+        const Padding& padding = this->GetPadding();
         Rect textRect(
             this->GetBounds().x + padding.left,
             this->GetBounds().y + padding.top,
             this->GetBounds().width - padding.left - padding.right,
             this->GetBounds().height - padding.top - padding.bottom
         );
-        
         renderer->DrawText(text, textRect, font, textBrush, textAlignment);
     }
     

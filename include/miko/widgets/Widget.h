@@ -61,8 +61,8 @@ namespace miko {
         void SetMargin(const Margin& margin) { this->margin = margin; InvalidateLayout(); }
         const Margin& GetMargin() const { return margin; }
         
-        void SetPadding(const Margin& padding) { this->padding = padding; InvalidateLayout(); }
-        const Margin& GetPadding() const { return padding; }
+    void SetPadding(const Padding& padding) { this->padding = padding; InvalidateLayout(); }
+    const Padding& GetPadding() const { return padding; }
         
         // Alignment
         void SetHorizontalAlignment(HorizontalAlignment alignment) { hAlignment = alignment; InvalidateLayout(); }
@@ -169,7 +169,7 @@ namespace miko {
         // Geometry
         Rect bounds;
         Margin margin;
-        Margin padding;
+    Padding padding;
         Size minSize;
         Size maxSize;
         

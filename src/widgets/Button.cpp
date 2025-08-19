@@ -72,7 +72,7 @@ void Button::OnRender(std::shared_ptr<Renderer> renderer) {
         Brush textBrush(textColor);
         
         // Calculate text area (excluding padding)
-        Margin padding = this->GetPadding();
+    const Padding& padding = this->GetPadding();
         Rect textRect(
             this->GetBounds().x + padding.left,
             this->GetBounds().y + padding.top,

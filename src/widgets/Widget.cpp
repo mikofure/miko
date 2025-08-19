@@ -58,26 +58,31 @@ void Widget::RemoveAllChildren() {
 
 Size Widget::MeasureDesiredSize(const Size& availableSize) {
     if (layout) {
-        // Use layout to measure desired size
-        Size layoutSize = layout->MeasureDesiredSize(children, availableSize);
-        
-        // Apply padding
-        Size desiredSize = Size(
-            layoutSize.width + padding.left + padding.right,
-            layoutSize.height + padding.top + padding.bottom
+        // Calculate available size for content (excluding margin and padding)
+        Size contentAvailableSize = Size(
+            std::max(0.0f, availableSize.width - margin.Horizontal() - padding.Horizontal()),
+            std::max(0.0f, availableSize.height - margin.Vertical() - padding.Vertical())
         );
-        
-        // Apply constraints
+        // Use layout to measure desired size
+        Size layoutSize = layout->MeasureDesiredSize(children, contentAvailableSize);
+        // Apply padding and margin
+        Size desiredSize = Size(
+            layoutSize.width + padding.Horizontal() + margin.Horizontal(),
+            layoutSize.height + padding.Vertical() + margin.Vertical()
+        );
+        // Apply constraints (constraints apply to the total size including margin and padding)
         Size constrainedSize = Size(
             std::max(minSize.width, std::min(maxSize.width, desiredSize.width)),
             std::max(minSize.height, std::min(maxSize.height, desiredSize.height))
         );
-        
         return constrainedSize;
     }
-    
-    // Default implementation - return minimum size
-    return GetMinSize();
+    // Default implementation - return minimum size plus margin and padding
+    Size baseSize = minSize;
+    return Size(
+        baseSize.width + margin.Horizontal() + padding.Horizontal(),
+        baseSize.height + margin.Vertical() + padding.Vertical()
+    );
 }
 
 void Widget::SetBounds(const Rect& bounds) {
@@ -108,17 +113,22 @@ void Widget::ArrangeChildren(const Rect& finalRect) {
 }
 
 void Widget::Arrange(const Rect& finalRect) {
-    SetBounds(finalRect);
-    
+    // The finalRect includes margin and padding space, so we need to calculate the actual widget bounds
+    Rect widgetBounds(
+        finalRect.x + margin.left + padding.left,
+        finalRect.y + margin.top + padding.top,
+        std::max(0.0f, finalRect.width - margin.Horizontal() - padding.Horizontal()),
+        std::max(0.0f, finalRect.height - margin.Vertical() - padding.Vertical())
+    );
+    SetBounds(widgetBounds);
     if (layout) {
-        // Calculate content area (excluding padding)
+        // Calculate content area (excluding margin and padding)
         Rect contentRect(
-            padding.left,
-            padding.top,
-            finalRect.width - padding.left - padding.right,
-            finalRect.height - padding.top - padding.bottom
+            widgetBounds.x,
+            widgetBounds.y,
+            widgetBounds.width,
+            widgetBounds.height
         );
-        
         layout->ArrangeChildren(children, contentRect);
     }
 }

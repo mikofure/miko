@@ -121,6 +121,24 @@ namespace miko {
         bool operator!=(const Margin& other) const {
             return !(*this == other);
         }
+
+    };
+
+    struct Padding {
+        float left, top, right, bottom;
+        Padding() : left(0.0f), top(0.0f), right(0.0f), bottom(0.0f) {}
+        Padding(float all) : left(all), top(all), right(all), bottom(all) {}
+        Padding(float horizontal, float vertical) : left(horizontal), top(vertical), right(horizontal), bottom(vertical) {}
+        Padding(float left, float top, float right, float bottom) : left(left), top(top), right(right), bottom(bottom) {}
+        float Horizontal() const { return left + right; }
+        float Vertical() const { return top + bottom; }
+        bool operator==(const Padding& other) const {
+            return std::abs(left - other.left) < 0.001f && std::abs(top - other.top) < 0.001f &&
+                   std::abs(right - other.right) < 0.001f && std::abs(bottom - other.bottom) < 0.001f;
+        }
+        bool operator!=(const Padding& other) const {
+            return !(*this == other);
+        }
     };
 
     // Utility functions

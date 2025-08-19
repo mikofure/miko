@@ -13,48 +13,51 @@ namespace miko {
 
     Rect Layout::ApplyAlignment(const Rect& bounds, const Size& desiredSize, 
                                HorizontalAlignment hAlign, VerticalAlignment vAlign) const {
-        float x = bounds.Left();
-        float y = bounds.Top();
+        // Get content rect accounting for margins
+        Rect contentBounds = GetContentRect(bounds);
+        
+        float x = contentBounds.Left();
+        float y = contentBounds.Top();
         
         // Apply horizontal alignment
         switch (hAlign) {
             case HorizontalAlignment::Left:
-                x = bounds.Left();
+                x = contentBounds.Left();
                 break;
             case HorizontalAlignment::Center:
-                x = bounds.Left() + (bounds.GetSize().width - desiredSize.width) / 2.0f;
+                x = contentBounds.Left() + (contentBounds.GetSize().width - desiredSize.width) / 2.0f;
                 break;
             case HorizontalAlignment::Right:
-                x = bounds.Right() - desiredSize.width;
+                x = contentBounds.Right() - desiredSize.width;
                 break;
             case HorizontalAlignment::Stretch:
-                x = bounds.Left();
+                x = contentBounds.Left();
                 break;
         }
         
         // Apply vertical alignment
         switch (vAlign) {
             case VerticalAlignment::Top:
-                y = bounds.Top();
+                y = contentBounds.Top();
                 break;
             case VerticalAlignment::Center:
-                y = bounds.Top() + (bounds.GetSize().height - desiredSize.height) / 2.0f;
+                y = contentBounds.Top() + (contentBounds.GetSize().height - desiredSize.height) / 2.0f;
                 break;
             case VerticalAlignment::Bottom:
-                y = bounds.Bottom() - desiredSize.height;
+                y = contentBounds.Bottom() - desiredSize.height;
                 break;
             case VerticalAlignment::Stretch:
-                y = bounds.Top();
+                y = contentBounds.Top();
                 break;
         }
         
         // Set result size based on alignment
         Size finalSize = desiredSize;
         if (hAlign == HorizontalAlignment::Stretch) {
-            finalSize.width = bounds.GetSize().width;
+            finalSize.width = contentBounds.GetSize().width;
         }
         if (vAlign == VerticalAlignment::Stretch) {
-            finalSize.height = bounds.GetSize().height;
+            finalSize.height = contentBounds.GetSize().height;
         }
         
         return Rect(x, y, finalSize.width, finalSize.height);
@@ -62,17 +65,17 @@ namespace miko {
 
     Size Layout::GetAvailableSize(const Size& containerSize) const {
         return Size(
-            std::max(0.0f, containerSize.width - margin.left - margin.right),
-            std::max(0.0f, containerSize.height - margin.top - margin.bottom)
+            std::max(0.0f, containerSize.width - margin.left - margin.right - padding.left - padding.right),
+            std::max(0.0f, containerSize.height - margin.top - margin.bottom - padding.top - padding.bottom)
         );
     }
 
     Rect Layout::GetContentRect(const Rect& containerRect) const {
         return Rect(
-            containerRect.Left() + margin.left,
-            containerRect.Top() + margin.top,
-            std::max(0.0f, containerRect.GetSize().width - margin.left - margin.right),
-            std::max(0.0f, containerRect.GetSize().height - margin.top - margin.bottom)
+            containerRect.Left() + margin.left + padding.left,
+            containerRect.Top() + margin.top + padding.top,
+            std::max(0.0f, containerRect.GetSize().width - margin.left - margin.right - padding.left - padding.right),
+            std::max(0.0f, containerRect.GetSize().height - margin.top - margin.bottom - padding.top - padding.bottom)
         );
     }
 

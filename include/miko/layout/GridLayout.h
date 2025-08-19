@@ -91,6 +91,7 @@ namespace miko {
         void DistributeStarSize(std::vector<float>& sizes, const std::vector<GridDefinition>& definitions, 
                                float availableSize) const;
         
+        Rect ApplyAlignment(std::shared_ptr<Widget> widget, const Rect& cellRect, const Size& desiredSize) const;
         void EnsureGridSize(int rows, int columns);
     };
 

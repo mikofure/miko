@@ -32,7 +32,9 @@ namespace miko {
         // Calculate desired sizes for each cell
         for (auto& cellInfo : cellInfos) {
             if (cellInfo.widget) {
-                cellInfo.desiredSize = cellInfo.widget->MeasureDesiredSize(availableSize);
+                Size childDesired = cellInfo.widget->MeasureDesiredSize(availableSize);
+                const auto& margin = cellInfo.widget->GetMargin();
+                cellInfo.desiredSize = Size(childDesired.width + margin.Horizontal(), childDesired.height + margin.Vertical());
             }
         }
 
@@ -58,7 +60,9 @@ namespace miko {
         // Calculate desired sizes for each cell
         for (auto& cellInfo : cellInfos) {
             if (cellInfo.widget) {
-                cellInfo.desiredSize = cellInfo.widget->MeasureDesiredSize(finalRect.GetSize());
+                Size childDesired = cellInfo.widget->MeasureDesiredSize(finalRect.GetSize());
+                const auto& margin = cellInfo.widget->GetMargin();
+                cellInfo.desiredSize = Size(childDesired.width + margin.Horizontal(), childDesired.height + margin.Vertical());
             }
         }
 
@@ -92,8 +96,11 @@ namespace miko {
                 float right = finalRect.Left() + columnPositions[column + columnSpan];
                 float bottom = finalRect.Top() + rowPositions[row + rowSpan];
 
-                Rect cellRect(left, top, right - left, bottom - top);
-                cellInfo.widget->Arrange(cellRect);
+                const auto& margin = cellInfo.widget->GetMargin();
+                Rect cellRect(left + margin.left, top + margin.top, (right - left) - margin.Horizontal(), (bottom - top) - margin.Vertical());
+                // Apply alignment within the cell
+                Rect alignedRect = ApplyAlignment(cellInfo.widget, cellRect, cellInfo.desiredSize);
+                cellInfo.widget->Arrange(alignedRect);
             }
         }
     }
@@ -223,29 +230,75 @@ namespace miko {
 
     void GridLayout::DistributeStarSize(std::vector<float>& sizes, const std::vector<GridDefinition>& definitions, 
                                        float availableSize) const {
-        // Calculate total star weight
-        float totalStarWeight = 0.0f;
+        // Calculate used size by non-star definitions
         float usedSize = 0.0f;
-        
         for (size_t i = 0; i < definitions.size(); ++i) {
-            if (definitions[i].IsStar()) {
-                totalStarWeight += definitions[i].GetStarValue();
-            } else {
+            if (!definitions[i].IsStar()) {
                 usedSize += sizes[i];
             }
         }
         
-        // Distribute remaining space among star columns/rows
-        if (totalStarWeight > 0.0f) {
-            float remainingSize = std::max(0.0f, availableSize - usedSize);
-            float starUnit = remainingSize / totalStarWeight;
-            
+        float remainingSize = std::max(0.0f, availableSize - usedSize);
+        
+        // Iterative distribution to handle minimum size constraints
+        std::vector<bool> isFixed(definitions.size(), false);
+        
+        while (remainingSize > 0.0f) {
+            // Calculate total star weight for unfixed star definitions
+            float totalStarWeight = 0.0f;
             for (size_t i = 0; i < definitions.size(); ++i) {
-                if (definitions[i].IsStar()) {
-                    sizes[i] = starUnit * definitions[i].GetStarValue();
+                if (definitions[i].IsStar() && !isFixed[i]) {
+                    totalStarWeight += definitions[i].GetStarValue();
                 }
             }
+            
+            if (totalStarWeight <= 0.0f) {
+                break; // No more star definitions to distribute to
+            }
+            
+            float starUnit = remainingSize / totalStarWeight;
+            bool anyFixed = false;
+            
+            // Distribute space and check for minimum constraints
+            for (size_t i = 0; i < definitions.size(); ++i) {
+                if (definitions[i].IsStar() && !isFixed[i]) {
+                    float proposedSize = starUnit * definitions[i].GetStarValue();
+                    
+                    // Apply minimum size constraint (use current size as minimum)
+                    float minSize = sizes[i];
+                    if (proposedSize < minSize) {
+                        // Fix this definition at its minimum size
+                        remainingSize -= (minSize - sizes[i]);
+                        sizes[i] = minSize;
+                        isFixed[i] = true;
+                        anyFixed = true;
+                    } else {
+                        sizes[i] = proposedSize;
+                    }
+                }
+            }
+            
+            if (!anyFixed) {
+                // No constraints violated, distribution complete
+                break;
+            }
         }
+    }
+
+    Rect GridLayout::ApplyAlignment(std::shared_ptr<Widget> widget, const Rect& cellRect, const Size& desiredSize) const {
+        if (!widget) {
+            return cellRect;
+        }
+        
+        // Get widget's alignment properties
+        HorizontalAlignment hAlign = widget->GetHorizontalAlignment();
+        VerticalAlignment vAlign = widget->GetVerticalAlignment();
+        
+        // Apply constraints to the desired size
+        Size constrainedSize = Layout::ApplyConstraints(desiredSize, widget->GetMinSize(), widget->GetMaxSize());
+        
+        // Use the base class ApplyAlignment method with the widget's alignment properties
+        return Layout::ApplyAlignment(cellRect, constrainedSize, hAlign, vAlign);
     }
 
     void GridLayout::EnsureGridSize(int rows, int columns) {

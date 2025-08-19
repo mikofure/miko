@@ -1,6 +1,7 @@
 #include "miko/layout/StackLayout.h"
 #include "miko/widgets/Widget.h"
 #include <algorithm>
+#include <cassert>
 
 namespace miko {
 
@@ -12,23 +13,61 @@ namespace miko {
     {
     }
 
-    Size StackLayout::MeasureDesiredSize(const std::vector<std::shared_ptr<Widget>>& children, const Size& availableSize) {
-        if (children.empty()) {
-            return Size(0, 0);
-        }
+    // Utility helper implementations
+    float StackLayout::CalculateTotalSpacing(size_t childCount) const {
+        return childCount > 1 ? spacing * static_cast<float>(childCount - 1) : 0.0f;
+    }
 
-        if (orientation == Orientation::Horizontal) {
-            return MeasureHorizontal(children, availableSize);
-        } else {
-            return MeasureVertical(children, availableSize);
+    bool StackLayout::IsValidChild(const std::shared_ptr<Widget>& child) {
+        return child != nullptr;
+    }
+
+    float StackLayout::CalculateAlignmentOffset(float totalSize, float usedSize, StackAlignment alignment) {
+        const float remainingSize = totalSize - usedSize;
+        
+        switch (alignment) {
+            case StackAlignment::Center:
+                return remainingSize * 0.5f;
+            case StackAlignment::End:
+                return remainingSize;
+            case StackAlignment::Start:
+            default:
+                return 0.0f;
         }
     }
 
+    Size StackLayout::MeasureDesiredSize(const std::vector<std::shared_ptr<Widget>>& children, const Size& availableSize) {
+        // Validate input parameters
+        if (availableSize.width < 0.0f || availableSize.height < 0.0f) {
+            assert(false && "Available size cannot be negative");
+            return Size(0.0f, 0.0f);
+        }
+        
+        // Early return for empty container
+        if (children.empty()) {
+            return Size(0.0f, 0.0f);
+        }
+
+        // Delegate to orientation-specific measurement
+        return (orientation == Orientation::Horizontal) 
+            ? MeasureHorizontal(children, availableSize)
+            : MeasureVertical(children, availableSize);
+    }
+
     void StackLayout::ArrangeChildren(const std::vector<std::shared_ptr<Widget>>& children, const Rect& finalRect) {
+        // Validate input parameters
+        const Size rectSize = finalRect.GetSize();
+        if (rectSize.width < 0.0f || rectSize.height < 0.0f) {
+            assert(false && "Final rectangle size cannot be negative");
+            return;
+        }
+        
+        // Early return for empty container
         if (children.empty()) {
             return;
         }
 
+        // Delegate to orientation-specific arrangement
         if (orientation == Orientation::Horizontal) {
             ArrangeHorizontal(children, finalRect);
         } else {
@@ -37,161 +76,220 @@ namespace miko {
     }
 
     Size StackLayout::MeasureHorizontal(const std::vector<std::shared_ptr<Widget>>& children, const Size& availableSize) {
-        float totalWidth = 0;
-        float maxHeight = 0;
+        float totalRequiredWidth = 0.0f;
+        float maxRequiredHeight = 0.0f;
+        size_t validChildCount = 0;
         
+        // Measure all valid children to determine total space requirements
         for (const auto& child : children) {
-            if (child) {
-                Size childDesiredSize = child->MeasureDesiredSize(availableSize);
-                totalWidth += childDesiredSize.width;
-                maxHeight = std::max(maxHeight, childDesiredSize.height);
-                
-                if (&child != &children.back()) {
-                    totalWidth += spacing;
-                }
+            if (!IsValidChild(child)) {
+                continue;
             }
+            // Add margin to each child's desired size
+            const Size childDesiredSize = child->MeasureDesiredSize(availableSize);
+            const auto& margin = child->GetMargin();
+            totalRequiredWidth += childDesiredSize.width + margin.Horizontal();
+            maxRequiredHeight = std::max(maxRequiredHeight, childDesiredSize.height + margin.Vertical());
+            ++validChildCount;
         }
         
-        return Size(totalWidth, maxHeight);
+        // Add spacing between children to total width requirement
+        totalRequiredWidth += CalculateTotalSpacing(validChildCount);
+        
+        return Size(totalRequiredWidth, maxRequiredHeight);
     }
 
     Size StackLayout::MeasureVertical(const std::vector<std::shared_ptr<Widget>>& children, const Size& availableSize) {
-        float maxWidth = 0;
-        float totalHeight = 0;
+        float maxRequiredWidth = 0.0f;
+        float totalRequiredHeight = 0.0f;
+        size_t validChildCount = 0;
         
+        // Measure all valid children to determine total space requirements
         for (const auto& child : children) {
-            if (child) {
-                Size childDesiredSize = child->MeasureDesiredSize(availableSize);
-                maxWidth = std::max(maxWidth, childDesiredSize.width);
-                totalHeight += childDesiredSize.height;
-                
-                if (&child != &children.back()) {
-                    totalHeight += spacing;
-                }
+            if (!IsValidChild(child)) {
+                continue;
             }
+            // Add margin to each child's desired size
+            const Size childDesiredSize = child->MeasureDesiredSize(availableSize);
+            const auto& margin = child->GetMargin();
+            maxRequiredWidth = std::max(maxRequiredWidth, childDesiredSize.width + margin.Horizontal());
+            totalRequiredHeight += childDesiredSize.height + margin.Vertical();
+            ++validChildCount;
         }
         
-        return Size(maxWidth, totalHeight);
+        // Add spacing between children to total height requirement
+        totalRequiredHeight += CalculateTotalSpacing(validChildCount);
+        
+        return Size(maxRequiredWidth, totalRequiredHeight);
     }
 
     void StackLayout::ArrangeHorizontal(const std::vector<std::shared_ptr<Widget>>& children, const Rect& finalRect) {
-        float currentX = finalRect.Left();
-        float availableWidth = finalRect.GetSize().width;
+        const Size containerSize = finalRect.GetSize();
+        const float containerWidth = containerSize.width;
+        const float containerHeight = containerSize.height;
         
-        // Calculate total width needed by all children except the last one (if fillLastChild is true)
-        float usedWidth = 0;
-        size_t childCount = children.size();
+        // Filter valid children and calculate layout metrics
+        std::vector<std::shared_ptr<Widget>> validChildren;
+        validChildren.reserve(children.size());
         
-        for (size_t i = 0; i < childCount; ++i) {
-            const auto& child = children[i];
-            if (!child) continue;
-            
-            if (fillLastChild && i == childCount - 1) {
-                // Skip the last child for now
-                continue;
-            }
-            
-            Size childDesiredSize = child->MeasureDesiredSize(Size(availableWidth, finalRect.GetSize().height));
-            usedWidth += childDesiredSize.width;
-            
-            if (i < childCount - 1) {
-                usedWidth += spacing;
+        for (const auto& child : children) {
+            if (IsValidChild(child)) {
+                validChildren.push_back(child);
             }
         }
         
-        // Arrange children
-        for (size_t i = 0; i < childCount; ++i) {
-            const auto& child = children[i];
-            if (!child) continue;
+        if (validChildren.empty()) {
+            return;
+        }
+        
+        const size_t validChildCount = validChildren.size();
+        const float totalSpacingWidth = CalculateTotalSpacing(validChildCount);
+        
+        // Calculate used width (excluding the last child if it should fill)
+        float totalUsedWidth = 0.0f;
+        const size_t measureCount = fillLastChild ? validChildCount - 1 : validChildCount;
+        
+        for (size_t i = 0; i < measureCount; ++i) {
+            const Size childDesiredSize = validChildren[i]->MeasureDesiredSize(Size(containerWidth, containerHeight));
+            totalUsedWidth += childDesiredSize.width;
+        }
+        
+        if (fillLastChild && validChildCount > 1) {
+            totalUsedWidth += CalculateTotalSpacing(measureCount);
+        } else {
+            totalUsedWidth += totalSpacingWidth;
+        }
+        
+        // Calculate starting position based on horizontal alignment
+        float currentXPosition = finalRect.Left();
+        if (!fillLastChild) {
+            currentXPosition += CalculateAlignmentOffset(containerWidth, totalUsedWidth, horizontalAlignment);
+        }
+        
+        // Arrange each child
+        for (size_t childIndex = 0; childIndex < validChildCount; ++childIndex) {
+            const auto& currentChild = validChildren[childIndex];
             
-            float childWidth;
-            
-            if (fillLastChild && i == childCount - 1) {
-                // Last child fills remaining space
-                childWidth = std::max(0.0f, availableWidth - usedWidth);
+            float childActualWidth;
+            float childActualHeight = containerHeight;
+            const bool isLastChild = (childIndex == validChildCount - 1);
+            const auto& margin = currentChild->GetMargin();
+            if (fillLastChild && isLastChild) {
+                // Last child fills remaining space, but respect min/max constraints
+                const float remainingWidth = containerWidth - (currentXPosition - finalRect.Left());
+                const Size childMinSize = currentChild->GetMinSize();
+                const Size childMaxSize = currentChild->GetMaxSize();
+                childActualWidth = std::max(childMinSize.width, std::min(childMaxSize.width, std::max(0.0f, remainingWidth)));
+                if (currentChild->GetVerticalAlignment() == VerticalAlignment::Stretch) {
+                    childActualHeight = std::max(childMinSize.height, std::min(childMaxSize.height, containerHeight));
+                } else {
+                    const Size childDesiredSize = currentChild->MeasureDesiredSize(Size(containerWidth, containerHeight));
+                    childActualHeight = childDesiredSize.height;
+                }
             } else {
-                Size childDesiredSize = child->MeasureDesiredSize(Size(availableWidth, finalRect.GetSize().height));
-                childWidth = childDesiredSize.width;
+                const Size childDesiredSize = currentChild->MeasureDesiredSize(Size(containerWidth, containerHeight));
+                childActualWidth = childDesiredSize.width;
+                if (currentChild->GetVerticalAlignment() == VerticalAlignment::Stretch) {
+                    const Size childMinSize = currentChild->GetMinSize();
+                    const Size childMaxSize = currentChild->GetMaxSize();
+                    childActualHeight = std::max(childMinSize.height, std::min(childMaxSize.height, containerHeight));
+                } else {
+                    childActualHeight = childDesiredSize.height;
+                }
             }
-            
-            float childHeight = finalRect.GetSize().height;
-            
-            Rect childBounds(
-                currentX,
-                finalRect.Top(),
-                childWidth,
-                childHeight
-            );
-            
-            child->ArrangeChildren(childBounds);
-            currentX += childWidth + spacing;
+            // Create bounds that include space for the child's margin
+            const Rect childBounds(currentXPosition + margin.left, finalRect.Top() + margin.top, childActualWidth, childActualHeight);
+            currentChild->Arrange(childBounds);
+            // Move to next position (add spacing only between children)
+            currentXPosition += childActualWidth + margin.Horizontal();
+            if (childIndex < validChildCount - 1) {
+                currentXPosition += spacing;
+            }
         }
     }
 
     void StackLayout::ArrangeVertical(const std::vector<std::shared_ptr<Widget>>& children, const Rect& finalRect) {
-        float availableHeight = finalRect.GetSize().height;
+        const Size containerSize = finalRect.GetSize();
+        const float containerWidth = containerSize.width;
+        const float containerHeight = containerSize.height;
         
-        // Calculate total height needed by all children except the last one (if fillLastChild is true)
-        float usedHeight = 0;
-        size_t childCount = children.size();
+        // Filter valid children and calculate layout metrics
+        std::vector<std::shared_ptr<Widget>> validChildren;
+        validChildren.reserve(children.size());
         
-        for (size_t i = 0; i < childCount; ++i) {
-            const auto& child = children[i];
-            if (!child) continue;
-            
-            if (fillLastChild && i == childCount - 1) {
-                // Skip the last child for now
-                continue;
-            }
-            
-            Size childDesiredSize = child->MeasureDesiredSize(Size(finalRect.GetSize().width, availableHeight));
-            usedHeight += childDesiredSize.height;
-            
-            if (i < childCount - 1 && !(fillLastChild && i == childCount - 2)) {
-                usedHeight += spacing;
+        for (const auto& child : children) {
+            if (IsValidChild(child)) {
+                validChildren.push_back(child);
             }
         }
         
-        // Calculate starting Y position based on vertical alignment
-        float currentY = finalRect.Top();
-        if (verticalAlignment == StackAlignment::Center) {
-            float remainingHeight = availableHeight - usedHeight;
-            currentY += remainingHeight / 2.0f;
-        } else if (verticalAlignment == StackAlignment::End) {
-            float remainingHeight = availableHeight - usedHeight;
-            currentY += remainingHeight;
+        if (validChildren.empty()) {
+            return;
         }
         
-        // Arrange children
-        for (size_t i = 0; i < childCount; ++i) {
-            const auto& child = children[i];
-            if (!child) continue;
+        const size_t validChildCount = validChildren.size();
+        const float totalSpacingHeight = CalculateTotalSpacing(validChildCount);
+        
+        // Calculate used height (excluding the last child if it should fill)
+        float totalUsedHeight = 0.0f;
+        const size_t measureCount = fillLastChild ? validChildCount - 1 : validChildCount;
+        
+        for (size_t i = 0; i < measureCount; ++i) {
+            const Size childDesiredSize = validChildren[i]->MeasureDesiredSize(Size(containerWidth, containerHeight));
+            totalUsedHeight += childDesiredSize.height;
+        }
+        
+        if (fillLastChild && validChildCount > 1) {
+            totalUsedHeight += CalculateTotalSpacing(measureCount);
+        } else {
+            totalUsedHeight += totalSpacingHeight;
+        }
+        
+        // Calculate starting position based on vertical alignment
+        float currentYPosition = finalRect.Top();
+        if (!fillLastChild) {
+            currentYPosition += CalculateAlignmentOffset(containerHeight, totalUsedHeight, verticalAlignment);
+        }
+        
+        // Arrange each child
+        for (size_t childIndex = 0; childIndex < validChildCount; ++childIndex) {
+            const auto& currentChild = validChildren[childIndex];
             
-            float childHeight;
-            
-            if (fillLastChild && i == childCount - 1) {
-                // Last child fills remaining space
-                childHeight = std::max(0.0f, availableHeight - usedHeight);
+            float childActualHeight;
+            float childActualWidth = containerWidth;
+            const bool isLastChild = (childIndex == validChildCount - 1);
+            const auto& margin = currentChild->GetMargin();
+            if (fillLastChild && isLastChild) {
+                // Last child fills remaining space, but respect min/max constraints
+                const float remainingHeight = containerHeight - (currentYPosition - finalRect.Top());
+                const Size childMinSize = currentChild->GetMinSize();
+                const Size childMaxSize = currentChild->GetMaxSize();
+                childActualHeight = std::max(childMinSize.height, std::min(childMaxSize.height, std::max(0.0f, remainingHeight)));
+                if (currentChild->GetHorizontalAlignment() == HorizontalAlignment::Stretch) {
+                    childActualWidth = std::max(childMinSize.width, std::min(childMaxSize.width, containerWidth));
+                } else {
+                    const Size childDesiredSize = currentChild->MeasureDesiredSize(Size(containerWidth, containerHeight));
+                    childActualWidth = childDesiredSize.width;
+                }
             } else {
-                Size childDesiredSize = child->MeasureDesiredSize(Size(finalRect.GetSize().width, availableHeight));
-                childHeight = childDesiredSize.height;
+                const Size childDesiredSize = currentChild->MeasureDesiredSize(Size(containerWidth, containerHeight));
+                childActualHeight = childDesiredSize.height;
+                if (currentChild->GetHorizontalAlignment() == HorizontalAlignment::Stretch) {
+                    const Size childMinSize = currentChild->GetMinSize();
+                    const Size childMaxSize = currentChild->GetMaxSize();
+                    childActualWidth = std::max(childMinSize.width, std::min(childMaxSize.width, containerWidth));
+                } else {
+                    childActualWidth = childDesiredSize.width;
+                }
             }
-            
-            float childWidth = finalRect.GetSize().width;
-            
-            Rect childBounds(
-                finalRect.Left(),
-                currentY,
-                childWidth,
-                childHeight
-            );
-            
-            child->ArrangeChildren(childBounds);
-            currentY += childHeight;
-            
-            // Add spacing only between children, not after the last one
-            if (i < childCount - 1) {
-                currentY += spacing;
+            // Create bounds that include space for the child's margin
+            const Rect childBounds(finalRect.Left() + margin.left, currentYPosition + margin.top, childActualWidth, childActualHeight);
+            currentChild->Arrange(childBounds);
+            // Move to next position (add spacing only between children)
+            // Note: childActualHeight already includes the child's margin from MeasureDesiredSize
+            currentYPosition += childActualHeight + margin.Vertical();
+            if (childIndex < validChildCount - 1) {
+                currentYPosition += spacing;
             }
         }
     }

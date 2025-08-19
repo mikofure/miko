@@ -55,7 +55,7 @@ Size Panel::MeasureDesiredSize(const Size& availableSize) {
     }
     
     // Add padding
-    Margin padding = GetPadding();
+    const Padding& padding = GetPadding();
     desiredSize.width += padding.left + padding.right;
     desiredSize.height += padding.top + padding.bottom;
     
@@ -73,18 +73,21 @@ void Panel::ArrangeChildren(const Rect& finalRect) {
     } else {
         // No layout - children maintain their manual positions
         // Just ensure they're positioned relative to this panel
-        Margin padding = GetPadding();
+    const Padding& padding = GetPadding();
         
         for (auto& child : GetChildren()) {
             if (child && child->IsVisible()) {
                 Point childPos = child->GetPosition();
                 Size childSize = child->GetSize();
                 
+                // Create bounds that include space for the child's margin
+                // The child's position should be offset by its margin to create proper spacing
+                Margin childMargin = child->GetMargin();
                 Rect childBounds(
-                    finalRect.Left() + padding.left + childPos.x,
-                    finalRect.Top() + padding.top + childPos.y,
-                    childSize.width,
-                    childSize.height
+                    finalRect.Left() + padding.left + childPos.x + childMargin.left,
+                    finalRect.Top() + padding.top + childPos.y + childMargin.top,
+                    childSize.width + childMargin.Horizontal(),
+                    childSize.height + childMargin.Vertical()
                 );
                 
                 child->Arrange(childBounds);
