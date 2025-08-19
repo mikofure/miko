@@ -65,8 +65,8 @@ namespace miko {
 
     Size Layout::GetAvailableSize(const Size& containerSize) const {
         return Size(
-            std::max(0.0f, containerSize.width - margin.left - margin.right - padding.left - padding.right),
-            std::max(0.0f, containerSize.height - margin.top - margin.bottom - padding.top - padding.bottom)
+            std::max(0.0f, containerSize.width - margin.Horizontal() - padding.Horizontal()),
+            std::max(0.0f, containerSize.height - margin.Vertical() - padding.Vertical())
         );
     }
 
@@ -74,8 +74,8 @@ namespace miko {
         return Rect(
             containerRect.Left() + margin.left + padding.left,
             containerRect.Top() + margin.top + padding.top,
-            std::max(0.0f, containerRect.GetSize().width - margin.left - margin.right - padding.left - padding.right),
-            std::max(0.0f, containerRect.GetSize().height - margin.top - margin.bottom - padding.top - padding.bottom)
+            std::max(0.0f, containerRect.GetSize().width - margin.Horizontal() - padding.Horizontal()),
+            std::max(0.0f, containerRect.GetSize().height - margin.Vertical() - padding.Vertical())
         );
     }
 

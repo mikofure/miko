@@ -94,7 +94,7 @@ void Label::OnRender(std::shared_ptr<Renderer> renderer) {
     if (!text.empty()) {
         Brush textBrush(textColor);
         // Calculate text area (excluding padding)
-        const Padding& padding = this->GetPadding();
+        const Spacing& padding = this->GetPadding();
         Rect textRect(
             this->GetBounds().x + padding.left,
             this->GetBounds().y + padding.top,

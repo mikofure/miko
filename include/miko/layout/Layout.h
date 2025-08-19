@@ -26,16 +26,16 @@ namespace miko {
     void SetSpacing(float spacing) { this->spacing = spacing; }
     float GetSpacing() const { return spacing; }
 
-    void SetMargin(const Margin& margin) { this->margin = margin; }
-    const Margin& GetMargin() const { return margin; }
+    void SetMargin(const Spacing& margin) { this->margin = margin; }
+    const Spacing& GetMargin() const { return margin; }
 
-    void SetPadding(const Padding& padding) { this->padding = padding; }
-    const Padding& GetPadding() const { return padding; }
+    void SetPadding(const Spacing& padding) { this->padding = padding; }
+    const Spacing& GetPadding() const { return padding; }
         
     protected:
         float spacing = 0.0f;
-        Margin margin;
-        Padding padding;
+        Spacing margin;
+        Spacing padding;
         
         // Helper methods
     Size ApplyConstraints(const Size& desiredSize, const Size& minSize, const Size& maxSize) const;

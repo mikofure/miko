@@ -30,7 +30,7 @@ public:
         auto layout = std::make_shared<StackLayout>(Orientation::Vertical);
         layout->SetSpacing(10.0f);
         layout->SetVerticalAlignment(StackAlignment::Center);
-        layout->SetMargin(Margin(20.0f));
+    layout->SetMargin(Spacing(20.0f));
         rootPanel->SetLayout(layout);
         
         // Create title label
@@ -95,7 +95,7 @@ public:
         gridPanel->SetCornerRadius(5.0f);
         
         auto gridLayout = std::make_shared<GridLayout>(3, 3);
-        gridLayout->SetMargin(Margin(10.0f));
+    gridLayout->SetMargin(Spacing(10.0f));
         gridLayout->SetSpacing(5.0f);
         
         // Add star columns and rows for responsive layout

@@ -27,7 +27,7 @@ TextBox::TextBox()
     SetBackgroundColor(Color::White);
     SetBorderColor(Color(128, 128, 128, 255));
     SetBorderWidth(1.0f);
-    SetPadding(Padding(4, 2, 4, 2));
+        SetPadding(Spacing(4, 2, 4, 2));
 }
 
 TextBox::TextBox(const std::string& text) : TextBox() {
@@ -227,7 +227,7 @@ void TextBox::OnRender(std::shared_ptr<Renderer> renderer) {
     }
     
     // Calculate text area
-    const Padding& padding = GetPadding();
+        const Spacing& padding = GetPadding();
     Rect textRect(
         GetBounds().x + padding.left,
         GetBounds().y + padding.top,
@@ -421,7 +421,7 @@ void TextBox::MoveCaret(int delta, bool extendSelection) {
 int TextBox::GetCaretPositionFromPoint(const Point& point) {
     // Simplified implementation - in a real implementation, this would
     // use the renderer to measure text accurately
-    const Padding& padding = GetPadding();
+    const Spacing& padding = GetPadding();
     float textX = point.x - GetBounds().x - padding.left + m_scrollOffset;
     if (textX <= 0) return 0;
     float charWidth = m_font.size * 0.6f; // Approximate character width
@@ -431,7 +431,7 @@ int TextBox::GetCaretPositionFromPoint(const Point& point) {
 
 void TextBox::EnsureCaretVisible() {
     // Simplified scrolling implementation
-    const Padding& padding = GetPadding();
+    const Spacing& padding = GetPadding();
     float textAreaWidth = GetBounds().width - padding.left - padding.right;
     float charWidth = m_font.size * 0.6f;
     float caretX = m_caretPosition * charWidth;

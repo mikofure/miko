@@ -66,7 +66,7 @@ private:
         
         auto sidebarLayout = std::make_shared<StackLayout>(Orientation::Vertical);
         sidebarLayout->SetSpacing(5.0f);
-        sidebarLayout->SetMargin(Margin(10.0f));
+    sidebarLayout->SetMargin(Spacing(10.0f));
         sidebar->SetLayout(sidebarLayout);
         
         // Sidebar title
@@ -101,11 +101,11 @@ private:
         mainContent->SetHorizontalAlignment(HorizontalAlignment::Stretch);
         mainContent->SetVerticalAlignment(VerticalAlignment::Stretch);
         mainContent->SetBackgroundColor(Color(0.98f, 0.98f, 0.98f, 1.0f)); // Light gray background like redesign
-        mainContent->SetMargin(Margin(10.0f, 0, 0, 0));
+    mainContent->SetMargin(Spacing(10.0f, 0, 0, 0));
         
         auto contentLayout = std::make_shared<StackLayout>(Orientation::Vertical);
         contentLayout->SetSpacing(0.0f); // Remove spacing since sections have their own margins
-        contentLayout->SetMargin(Margin(24.0f)); // Increased padding for better spacing
+    contentLayout->SetMargin(Spacing(24.0f)); // Increased padding for better spacing
         mainContent->SetLayout(contentLayout);
         
         // Show basic widgets by default
@@ -140,13 +140,13 @@ private:
         auto labelSection = CreateSection("Labels");
         
         auto simpleLabel = std::make_shared<Label>("Simple Label");
-        simpleLabel->SetPadding(Padding(8.0f, 4.0f));
+    simpleLabel->SetPadding(Spacing(8.0f, 4.0f));
         labelSection->AddChild(simpleLabel);
 
         auto styledLabel = std::make_shared<Label>("Styled Label with Bold Font");
         styledLabel->SetFont(Font("Segoe UI", 14.0f, FontWeight::Bold));
         styledLabel->SetTextColor(Color::Blue);
-        styledLabel->SetPadding(Padding(8.0f, 4.0f));
+    styledLabel->SetPadding(Spacing(8.0f, 4.0f));
         labelSection->AddChild(styledLabel);
 
         auto wrappedLabel = std::make_shared<Label>(
@@ -155,7 +155,7 @@ private:
         );
         wrappedLabel->SetWordWrap(true);
         wrappedLabel->SetHorizontalAlignment(HorizontalAlignment::Stretch);
-        wrappedLabel->SetPadding(Padding(8.0f, 4.0f));
+    wrappedLabel->SetPadding(Spacing(8.0f, 4.0f));
         labelSection->AddChild(wrappedLabel);
         
         mainContent->AddChild(labelSection);
@@ -173,13 +173,13 @@ private:
         // Create buttons with modern styling matching redesign
         auto normalButton = std::make_shared<Button>("Normal Button");
         normalButton->SetSize(Size(140.0f, 36.0f)); // Slightly larger
-    normalButton->SetPadding(Padding(12.0f, 8.0f)); // More padding
+    normalButton->SetPadding(Spacing(12.0f, 8.0f)); // More padding
         normalButton->SetCornerRadius(8.0f); // Rounded corners
         buttonPanel->AddChild(normalButton);
         
         auto styledButton = std::make_shared<Button>("Styled Button");
         styledButton->SetSize(Size(140.0f, 36.0f));
-    styledButton->SetPadding(Padding(12.0f, 8.0f));
+    styledButton->SetPadding(Spacing(12.0f, 8.0f));
         styledButton->SetBackgroundColor(Color(0.2f, 0.4f, 1.0f, 1.0f)); // Modern blue
         styledButton->SetTextColor(Color::White);
         styledButton->SetCornerRadius(8.0f);
@@ -187,7 +187,7 @@ private:
         
         auto disabledButton = std::make_shared<Button>("Disabled Button");
         disabledButton->SetSize(Size(140.0f, 36.0f));
-    disabledButton->SetPadding(Padding(12.0f, 8.0f));
+    disabledButton->SetPadding(Spacing(12.0f, 8.0f));
         disabledButton->SetCornerRadius(8.0f);
         disabledButton->SetEnabled(false);
         buttonPanel->AddChild(disabledButton);
@@ -232,7 +232,7 @@ private:
         
         auto stackLayout = std::make_shared<StackLayout>(Orientation::Horizontal);
         stackLayout->SetSpacing(10.0f);
-        stackLayout->SetMargin(Margin(10.0f));
+    stackLayout->SetMargin(Spacing(10.0f));
         stackDemo->SetLayout(stackLayout);
         
         for (int i = 1; i <= 4; i++) {
@@ -254,7 +254,7 @@ private:
         
         auto gridLayout = std::make_shared<GridLayout>(3, 4);
         gridLayout->SetSpacing(5.0f);
-        gridLayout->SetMargin(Margin(10.0f));
+    gridLayout->SetMargin(Spacing(10.0f));
         
         // Set up responsive columns
         for (int i = 0; i < 4; i++) {
@@ -299,8 +299,8 @@ private:
         section->SetBorderColor(Color(0.9f, 0.9f, 0.9f, 1.0f)); // Light gray border
         section->SetBorderWidth(1.0f);
         section->SetCornerRadius(12.0f); // More rounded corners like redesign
-    section->SetPadding(Padding(20.0f)); // Increased padding for better spacing
-        section->SetMargin(Margin(0, 0, 16.0f, 0)); // Bottom margin between sections
+    section->SetPadding(Spacing(20.0f)); // Increased padding for better spacing
+        section->SetMargin(Spacing(0, 0, 16.0f, 0)); // Bottom margin between sections
         
         auto layout = std::make_shared<StackLayout>(Orientation::Vertical);
         layout->SetSpacing(16.0f); // Increased spacing
